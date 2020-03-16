@@ -1,0 +1,6 @@
+ names year points
+0 Kilho 2014 1.5
+1 Kilho 2015 1.7
+2 Kilho 2016 3.6
+3 $ 2015 2.4
+4 ? 2016 2.9
