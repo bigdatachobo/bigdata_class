@@ -1,0 +1,57 @@
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1.다이어트 식품의 효과
+
+Boxplot과 T-test를 이용하여 다이어트 식품의 효과성을 알아본다.
+
+```{r}
+library(ggplot2)
+getwd()
+setwd("C:/Users/sundooedu/Desktop")
+diet<-read.csv("diet_effect.csv")
+
+diet <- as.data.frame(sapply(diet, as.numeric))
+
+diet<-diet[!(diet$after==999),]
+
+boxplot(diet$before, diet$after, col=c("yellow", "green"), names=c("복용 전", "복용 후"), main="다이어트식품 복용효과 Boxplot",xlab="복용 비교집단", ylab="몸무게")
+
+  
+t.test(diet$before, diet$after, var.equal = TRUE)
+```
+
+## 결과
+
+T-test 및 Boxplot으로 비교분석해본결과 집단평균도 7키로 이상차이나고
+이 효과가 우연일 가능성은 0.00000000002프로 이하의 예외적인 확률이므로 다이어트 효과는 있는 것으로 나왔습니다.
+
+하지만 Boxplot에서 분포도를 볼수 있듯이 복용후의 표준편차가 복용전의 몸무게 분포에 비하면 많이 커졌기 때문에 각 사람마다 효과의 편차는 다소 있는것으로 보입니다.
+
+
+## 2.범죄율
+구별 '강간', '강도', '살인', '절도', '폭력', '범죄' 검거율 등 여러 변수의
+상관 관계를 상관 행렬로 나타내세요.
+
+```{r}
+
+crime<-read.csv("crime_in_Seoul_include_gu_name.csv")
+
+
+crime <- as.data.frame(sapply(crime, as.numeric))
+crime_number<-crime[,c(2,4,6,8,10)]
+crime_caught<-crime[,c(3,5,7,9,11)]
+crime_aggregate<-crime[,c(2:11)]
+cor(crime_number)
+cor(crime_caught)
+
+library(corrplot)
+plot(crime_number)
+plot(crime_caught)
+corrplot(cor(crime_number))
+corrplot(cor(crime_caught))
+corrplot(cor(crime_aggregate))
+
+```
