@@ -1,0 +1,51 @@
+---
+title: "20191226_quiz_crime"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 3. 범죄율
+
+```{r cars}
+crime <- read.csv("../data/crime_in_Seoul_include_gu_name.csv",fileEncoding = "UTF-8")
+
+crime <- as.data.frame(sapply(crime, as.numeric))
+crime <- crime[,-c(1,2)]
+head(crime)
+crime_number <- crime[,c(1,3,5,7,9)]
+head(crime_number)
+crime_caught <- crime[,c(2,4,6,8,10)]
+head(crime_caught)
+crime_aggregate <- crime[,c(1:10)]
+head(crime_aggregate)
+cor(crime_number)
+
+cor(crime_caught)
+library(corrplot)
+plot(crime_number)
+
+plot(crime_caught)
+
+corrplot(cor(crime_number), method = "number")
+
+corrplot(cor(crime_caught), method = "number")
+
+corrplot(cor(crime_aggregate), method = "number")
+
+col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA")) 
+
+corrplot( cor(crime_aggregate),          
+          method = "color",       # 색깔로 표현
+          col = col(200),         # 색상 200 개 선정
+          type = "lower",         # 왼쪽 아래 행렬만 표시
+          order = "hclust",       # 유사한 상관계수끼리 군집화
+          addCoef.col = "black",  # 상관계수 색깔
+          tl.col = "black",       # 변수명 색깔
+          tl.srt = 45,            # 변수명 45 도 기울임
+          diag = F)               # 대각 행렬 제외
+ 
+```
+

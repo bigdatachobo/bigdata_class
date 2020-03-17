@@ -1,0 +1,121 @@
+---
+title: "quiz"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r cars}
+# 1. 5호선 주소 불러오기
+library(readxl)
+subway <- read_xlsx("../data/서울_지하철_전화번호_주소_5호선.xlsx")
+head(subway)
+
+# 2. 한글 주소로 lon / lat 얻기
+library(ggmap)
+
+googleAPIkey = "AIzaSyBKRq7_4cl5CG-p7rpn4jAAsayRK4qoWYc"
+
+register_google(googleAPIkey)
+gg_seoul <- get_googlemap("seoul", zoom = 10, maptype= "terrain")
+ggmap(gg_seoul)
+
+library(dplyr)
+library(ggplot2)
+
+geo_code <- enc2utf8(subway$도로명주소) %>% geocode()
+
+geo_data <- lapply(geo_code,as.numeric)
+
+geoPoint=geom_point(data = geo_code, aes(x=geo_code$lon, y=geo_code$lat))
+
+# 3. subway에 lon / lat 열로 붙여넣기 
+subway$lon <- geo_data$lon
+subway$lat <- geo_data$lat
+
+# 4. 아파트 실거래가 데이터 전처리
+apart <- read_xlsx("../data/apartment.xlsx",skip=16)
+
+# 소수점에서 반올림
+apart$`전용면적(㎡)` <- round(as.numeric(apart$`전용면적(㎡)`),0)
+
+# 전용면적 85만 추출
+aparts <- apart[apart$`전용면적(㎡)`== 85,]
+
+# ","제거 및 수치형으로 변환.
+aparts$`거래금액(만원)` <- as.numeric(gsub(",","",aparts$`거래금액(만원)`))
+
+apart$`거래금액(만원)` <- as.numeric(gsub(",","",apart$`거래금액(만원)`))
+
+library(dplyr)
+# 단지별 평균 가격 추출
+aparts <- aparts %>%
+  group_by(단지명) %>%
+  mutate(mean_value = mean(`거래금액(만원)`))
+
+# 열끼리 합치기
+aparts$결합주소 <- paste(aparts$시군구,aparts$번지,sep=" ")
+
+# 위/경도 데이터 가져오기.
+geo_code2 <- enc2utf8(aparts$결합주소) %>% geocode()
+
+geo_data2 <- lapply(geo_code2,as.numeric)
+
+geoPoint2=geom_point(data = geo_code2, aes(x=geo_code2$lon, y=geo_code2$lat))
+
+aparts$lon <- geo_data2$lon
+aparts$lat <- geo_data2$lat
+
+# 5. 구글 지도에 지하쳘역과 아파트 가격 표시하기
+# 5-1) 강서구 지도 가져오기
+geo_code3 <- enc2utf8("강서구") %>% geocode()
+geo_data3 <- as.numeric(geo_code3)
+geoPoint3=geom_point(data = geo_code3, aes(x=geo_code3$lon, y=geo_code3$lat))
+
+gmap <- get_googlemap(center = geo_data3, maptype = "roadmap", zoom=12) %>% ggmap() + geoPoint3
+
+# 5-2)지하철역 위치 및 아파트 가격 정보 표시하기.
+#install.packages("leaflet")
+library(leaflet)
+
+content_sub <- paste(sep="<br/>",
+                 paste0("<b>호선: </b>",subway$호선),
+                 paste0("<b>역명: </b>",subway$역명),
+                 paste0("<b>주소: </b>",subway$도로명주소),
+                 paste0("<b>전화번호: </b>",subway$전화번호))
+
+content_apart <- paste(sep="<br/>",
+                     paste0("<b>단지명: </b>",aparts$단지명),
+                     paste0("<b>주소: </b>",aparts$결합주소),
+                     paste0("<b>전용면적(㎡): </b>",aparts$`전용면적(㎡)`),
+                     paste0("<b>거래금액(만원): </b>",aparts$`거래금액(만원)`),
+                     paste0("<b>층: </b>",aparts$층),
+                     paste0("<b>건축년도: </b>",aparts$건축년도))
+
+m<- leaflet() %>%
+  addTiles() %>%
+  addMarkers(lng = subway$lon,
+             lat = subway$lat,
+             popup = content_sub,
+             label = "지하철 5호선",
+             clusterOptions = markerClusterOptions()) %>%
+  addMarkers(lng = aparts$lon,
+             lat = aparts$lat,
+             popup = content_apart,
+             label = "아파트",
+             clusterOptions = markerClusterOptions())
+
+m
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

@@ -1,0 +1,52 @@
+---
+title: "statistics_quiz"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Age 통계 분석
+
+```{r cars}
+desc <- read.csv("../data/descriptive.csv", header = T)
+head(desc)
+
+# 조건 1)
+type <- desc$type
+summary(type)
+
+x1 <- table(type)
+x1
+
+hist(type)
+pie(x1)
+
+# 조건 2)
+# 왜도/ 첨도 사용을 위한 패키지 설치
+library(moments)
+age <- desc$age
+age
+
+skewness(age) # 0.3804892
+kurtosis(age) # 1.866623
+hist(age)
+
+library(Hmisc)
+
+describe(age)
+
+library(prettyR)
+
+freq(data)
+
+# 조건 3)
+plot(density(age))
+mean(age) # 53.88
+sd(age) # 6.813247
+sort(age)
+dnorms <- dnorm(age,mean(age),sd(age))
+plot(age,dnorms)
+
+```
